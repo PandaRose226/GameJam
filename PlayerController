@@ -1,0 +1,224 @@
+using UnityEngine;
+
+public class SizeShifter : MonoBehaviour
+{
+    // Variables to control size
+    public float xDirection;
+    public float yDirection;
+    public float health;
+    public float smallSize = 0.5f;
+    public float regularSize = 1.0f;
+    public float largeSize = 2.0f;
+    public float shiftSpeed = 5.0f; // How fast the size changes
+
+    private Vector3 targetScale;
+    public Vector2 walkingDirection;
+
+    public int speed = 10;
+    public int wire;
+    public int omniDirection;
+
+    public Rigidbody2D rb;
+    public SpriteRenderer spriteR;
+    public GameObject projectile;
+
+    public enum State
+    {
+        idle,
+        walking,
+        jumping,
+        fix,
+        death
+    }
+    public State state;
+    public Animator animator;
+
+    public bool jump;
+    public bool onGround;
+    public bool death;
+    public bool fix;
+    void Start()
+    {
+        // Start at normal size (1,1,1)
+        targetScale = new Vector3(1f, 1f, 1f);
+        rb = this.gameObject.GetComponent<Rigidbody2D>();
+        animator = this.gameObject.GetComponent<Animator>();
+        spriteR = this.gameObject.GetComponent<SpriteRenderer>();
+    }
+
+    void Update()
+    {
+        // Input Checking
+        CheckInputs();
+        walkingDirection = (xDirection * transform.right) + (yDirection * transform.up);
+        walkingDirection.Normalize();
+        if (state == State.idle)
+        {
+            IdleState();
+        }
+        else if (state == State.walking)
+        {
+            WalkingState();
+        }
+        else if (state == State.jumping)
+        {
+            JumpingState();
+        }
+        else if (state == State.fix)
+        {
+            FixState();
+        }
+        else if (state == State.death)
+        {
+            DeathState();
+        }
+        if (Input.GetKeyDown(KeyCode.Q)) // Press Q to Shrink
+        {
+            targetScale = new Vector3(smallSize, smallSize, 1f);
+        }
+        else if (Input.GetKeyDown(KeyCode.E)) // Press E to Grow
+        {
+            targetScale = new Vector3(largeSize, largeSize, 1f);
+        }
+        else if (Input.GetKeyDown(KeyCode.R)) // Press R to Return to Regular Size
+        {
+            targetScale = new Vector3(regularSize, regularSize, 1f);
+        }
+
+        // Smoothly move from current scale to target scale using Linear Interpolation (Lerp)
+        transform.localScale = Vector3.Lerp(transform.localScale, targetScale, Time.deltaTime * shiftSpeed);
+    }
+    public void IdleState()
+    {
+        animator.SetBool("idle", true);
+        animator.SetBool("walking", false);
+        animator.SetBool("jumping", false);
+        animator.SetBool("fix", false);
+        animator.SetBool("death", false);
+
+        Debug.Log("IM NOT DOIN ANYTHING!");
+
+        if ((xDirection != 0)||(yDirection != 0) && !jump)
+        {
+            state = State.walking;
+        }
+        else if (jump)
+        {
+            state = State.jumping;
+        }
+        else if (fix)
+        {
+            state = State.fix;
+        }
+    }
+    public void WalkingState()
+    {
+        animator.SetBool("idle", false);
+        animator.SetBool("walking", true);
+        animator.SetBool("jumping", false);
+        animator.SetBool("fix", false);
+        animator.SetBool("death", false);
+
+        Debug.Log("JUST TROTTIN ALONG");
+
+        if ((xDirection != 0) || (yDirection != 0) && !jump)
+        {
+            state = State.idle;
+        }
+        else if (jump)
+        {
+            state = State.jumping;
+        }
+        else if (fix)
+        {
+            state = State.fix;
+        }
+    }
+    public void JumpingState()
+    {
+        animator.SetBool("idle", false);
+        animator.SetBool("walking", false);
+        animator.SetBool("jumping", true);
+        animator.SetBool("fix", false);
+        animator.SetBool("death", false);
+
+        Debug.Log("IM HOPPIN");
+
+        if ((xDirection != 0) || (yDirection != 0) && !jump)
+        {
+            state = State.idle;
+        }
+        else if (jump)
+        {
+            state = State.jumping;
+        }
+        else if (fix)
+        {
+            state = State.fix;
+        }
+    }
+    public void FixState()
+    {
+        animator.SetBool("idle", false);
+        animator.SetBool("walking", false);
+        animator.SetBool("jumping", false);
+        animator.SetBool("fix", true);
+        animator.SetBool("death", false);
+
+        Debug.Log("MR FIXIN TO");
+
+        if ((xDirection != 0) || (yDirection != 0) && !jump)
+        {
+            state = State.idle;
+        }
+        else if (jump)
+        {
+            state = State.jumping;
+        }
+        else if (fix)
+        {
+            state = State.fix;
+        }
+    }
+    public void DeathState()
+    {
+        animator.SetBool("idle", false);
+        animator.SetBool("walking", false);
+        animator.SetBool("jumping", false);
+        animator.SetBool("fix", true);
+        animator.SetBool("death", false);
+
+        Debug.Log("IM DED");
+    }
+    public void CheckInputs()
+    {
+        xDirection = Input.GetAxis("Horizontal");
+        yDirection = Input.GetAxis("Vertical");
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            fix = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Space)&& onGround)
+        {
+            jump = true;
+        }
+        if (Input.GetKeyDown(KeyCode.W)|| Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            omniDirection = 2;
+        }
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            omniDirection = 3;
+        }
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            omniDirection = 4;
+        }
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            omniDirection = 1;
+        }
+    }
+
+}
