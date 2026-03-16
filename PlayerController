@@ -190,6 +190,11 @@ public class SizeShifter : MonoBehaviour
 
         Debug.Log("IM DED");
     }
+    void FixedUpdate()
+    {
+        rb.AddForce(walkingDirection * speed,ForceMode2D .Force);
+        
+    }
     public void CheckInputs()
     {
         xDirection = Input.GetAxis("Horizontal");
