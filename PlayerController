@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.InputSystem.EnhancedTouch;
+using static UnityEditor.VersionControl.Asset;
 
 public class SizeShifter : MonoBehaviour
 {
@@ -8,8 +10,9 @@ public class SizeShifter : MonoBehaviour
     public float health;
     public float smallSize = 0.5f;
     public float regularSize = 1.0f;
-    public float largeSize = 2.0f;
+    public float largeSize = 3.0f;
     public float shiftSpeed = 5.0f; // How fast the size changes
+    public float jumpTimer = 0.05f;
 
     private Vector3 targetScale;
     public Vector2 walkingDirection;
@@ -17,6 +20,7 @@ public class SizeShifter : MonoBehaviour
     public int speed = 10;
     public int wire;
     public int omniDirection;
+    public int jumpForce = 10;
 
     public Rigidbody2D rb;
     public SpriteRenderer spriteR;
@@ -133,6 +137,7 @@ public class SizeShifter : MonoBehaviour
         {
             state = State.fix;
         }
+
     }
     public void JumpingState()
     {
@@ -156,6 +161,34 @@ public class SizeShifter : MonoBehaviour
         {
             state = State.fix;
         }
+        if (fix)
+        {
+            state = State.fix;
+        }
+        if (!jump)
+        {
+            rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+            jump = true;
+        }
+        if (onGround)
+        {
+            jumpTimer -= 1 * Time.deltaTime;
+            if (jumpTimer <= 0)
+            {
+                jump = false;
+                jump = false;
+                if ((xDirection != 0) || (yDirection != 0))
+                {
+                    state = State.walking;
+                }
+                else
+                {
+                    state = State.idle;
+                }
+                jumpTimer = 0.05f;
+            }
+        }
+
     }
     public void FixState()
     {
@@ -192,8 +225,20 @@ public class SizeShifter : MonoBehaviour
     }
     void FixedUpdate()
     {
-        rb.AddForce(walkingDirection * speed,ForceMode2D .Force);
-        
+        rb.AddForce(walkingDirection * speed, ForceMode2D.Force);
+        if (jump)
+        {
+            rb.mass = 2.1f;
+            rb.linearDamping = 4;
+            rb.angularDamping = 0.05f;
+        }
+        else
+        {
+            rb.mass = 1f;
+            rb.linearDamping = 5;
+            rb.angularDamping = 0.04f;
+        }
+
     }
     public void CheckInputs()
     {
@@ -224,6 +269,90 @@ public class SizeShifter : MonoBehaviour
         {
             omniDirection = 1;
         }
+    }
+    public void OnCollisionEnter2D(Collision2D collision)
+    {
+        // OUR FIRST CONDITIONAL STATEMENT
+        // == means is
+        if (collision.gameObject.tag == "enemy")
+        {
+            //health = health - 5;
+            health -= 5;
+            if (health <= 0)
+            {
+                state = State.death;
+                speed = 0;
+            }
+        }
+
+        if (collision.gameObject.tag == "pit")
+        {
+
+            health = health - 10;
+            //if still has lives
+            if (health > 0)
+            {
+                if (GameObject.Find("StartingPoint") != null)
+                {
+                    transform.position = GameObject.Find("StartingPoint").transform.position;
+                }
+            }
+            else
+            {
+                //otherwise death state
+                state = State.death;
+                speed = 0;
+            }
+
+
+        }
+
+    }
+    public void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "ground")
+        {
+            onGround = true;
+        }
+    }
+    //This event runs once when you exit a collision with another game object with a collider
+    public void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "ground")
+        {
+            onGround = false;
+        }
+    }
+
+    //this event runs 1 time when my game object collides with another object with a trigger
+    public void OnTriggerEnter2D(Collider2D other)
+    {
+        /*if (other.gameObject.tag == "money")
+        {
+            //money = money + 1;
+            //money += 1;
+            // ++ or -- just adds or takes way one
+            money++;
+            SetCoinText();
+            Destroy(other.gameObject);
+        }
+        else if (other.gameObject.tag == "food")
+        {
+            hunger++;
+            SetProjectileText();
+            Destroy(other.gameObject);
+        }*/
+    }
+
+
+    public void OnTriggerStay2D(Collider2D collision)
+    {
+
+    }
+
+    public void OnTriggerExit2D(Collider2D collision)
+    {
+
     }
 
 }
