@@ -40,6 +40,7 @@ public class SizeShifter : MonoBehaviour
 
     public bool jump;
     public bool onGround;
+    public bool jumping;
     public bool death;
     public bool fix;
     void Start()
@@ -162,10 +163,10 @@ public class SizeShifter : MonoBehaviour
         {
             state = State.fix;
         }
-        if (!jump)
+        if (!jumping)
         {
             rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            jump = true;
+            jumping = true;
         }
         if (onGround)
         {
@@ -313,7 +314,7 @@ public class SizeShifter : MonoBehaviour
         {
             fix = true;
         }
-        if (Input.GetKeyDown(KeyCode.Space)&& onGround)
+        if (Input.GetKeyDown(KeyCode.Space) && onGround)
         {
             jump = true;
         }
