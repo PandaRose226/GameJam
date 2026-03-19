@@ -7,12 +7,13 @@ public class SizeShifter : MonoBehaviour
     // Variables to control size
     public float xDirection;
     public float yDirection;
-    public float health;
+    public float health = 10;
     public float smallSize = 0.5f;
     public float regularSize = 1.0f;
     public float largeSize = 3.0f;
     public float shiftSpeed = 5.0f; // How fast the size changes
     public float jumpTimer = 0.05f;
+    public float fixTimer = 1;
 
     private Vector3 targetScale;
     public Vector2 walkingDirection;
@@ -143,7 +144,7 @@ public class SizeShifter : MonoBehaviour
     {
         animator.SetBool("idle", false);
         animator.SetBool("walking", false);
-        animator.SetBool("jumping", true);
+        animator.SetBool("jump", true);
         animator.SetBool("fix", false);
         animator.SetBool("death", false);
 
@@ -153,15 +154,11 @@ public class SizeShifter : MonoBehaviour
         {
             state = State.idle;
         }
-        else if (jump)
+        else if (jumping)
         {
             state = State.jumping;
         }
         else if (fix)
-        {
-            state = State.fix;
-        }
-        if (fix)
         {
             state = State.fix;
         }
@@ -177,6 +174,10 @@ public class SizeShifter : MonoBehaviour
             {
                 jump = false;
                 jump = false;
+                if (fix)
+                {
+                    state.State.fix;
+                }
                 if ((xDirection != 0) || (yDirection != 0))
                 {
                     state = State.walking;
@@ -199,19 +200,34 @@ public class SizeShifter : MonoBehaviour
         animator.SetBool("death", false);
 
         Debug.Log("MR FIXIN TO");
+        
+        if (xDirection < 0)
+        {
+            spriteR.flipX = true;
+        }
+        else
+        {
+            spriteR.flipX = false;
+        }
+        fixTimer -= 1 * Time.deltaTime;
+        if (fixTimer <= 0)
+        {
+            if (jumping)
+            {
+                state = State.jumping;
+            }
+            else if (walking)
+            {
+                state = State.walking;
+            }
+            else 
+            {
+                state.State.idle;
+            }
+            fixTimer = 1;
+        }
 
-        if ((xDirection != 0) || (yDirection != 0) && !jump)
-        {
-            state = State.idle;
-        }
-        else if (jump)
-        {
-            state = State.jumping;
-        }
-        else if (fix)
-        {
-            state = State.fix;
-        }
+
     }
     public void DeathState()
     {
@@ -222,6 +238,54 @@ public class SizeShifter : MonoBehaviour
         animator.SetBool("death", false);
 
         Debug.Log("IM DED");
+         if (health <= 0)
+           {
+           StartCoroutine(GameOver());
+           /*//activate death message in HUD with buttons
+           if (deathBG != null)
+           {
+               deathBG.SetActive(true);
+           }
+           if (deathText != null)
+           {
+               deathText.SetActive(true);
+           }
+           if (Input.GetKeyDown(KeyCode.R))
+           {
+               if (GameObject.Find("StartingPoint") != null)
+               {
+                   transform.position = GameObject.Find("StartingPoint").transform.position;
+               }
+               if (deathBG != null)
+               {
+                   deathBG.SetActive(false);
+               }
+               if (deathText != null)
+               {
+                   deathText.SetActive(false);
+               }
+
+               hunger = 10;
+               SetProjectileText();
+               health = 30;
+               money = 0;
+               SetCoinText();
+               death = false;
+               states = States.idle;
+               speed = 13;
+           }
+        }
+           IEnumerator GameOver(float deathAnimationLength)
+           {
+               yield return new WaitForSeconds(deathAnimationLength);
+               if (Input.GetKeyDown(KeyCode.Return))
+               {
+
+               }
+                levelManager.LoadDeathLevel();
+
+           }
+
     }
     void FixedUpdate()
     {
@@ -276,16 +340,19 @@ public class SizeShifter : MonoBehaviour
         // == means is
         if (collision.gameObject.tag == "enemy")
         {
-            //health = health - 5;
-            health -= 5;
-            if (health <= 0)
+            if (transform.position.y < collision.gameObject.transform.position.y)
             {
-                state = State.death;
-                speed = 0;
+                //health = health - 5;
+                health -= 5;
+                if (health <= 0)
+                {
+                    state = State.death;
+                    speed = 0;
+                }
             }
         }
 
-        if (collision.gameObject.tag == "pit")
+        /*if (collision.gameObject.tag == "pit")
         {
 
             health = health - 10;
@@ -305,7 +372,7 @@ public class SizeShifter : MonoBehaviour
             }
 
 
-        }
+        }*/
 
     }
     public void OnCollisionStay2D(Collision2D collision)
